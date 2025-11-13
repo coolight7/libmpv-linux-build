@@ -1,0 +1,21 @@
+name: Build libmpv-linux
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Bundle (default)
+        working-directory: ./buildscripts
+        run: |
+          source ~/.bashrc
+          sudo chmod +x bundle_default.sh
+          ./bundle_default.sh
