@@ -21,7 +21,7 @@ cd _build$cpu_suffix
 
 CONF=1 ../configure \
 	CFLAGS=-fPIC CXXFLAGS=-fPIC \
-	--host=$ndk_triple \
+	--host=$cpu_triple \
     --disable-shared \
     --enable-static \
 	--enable-pic \

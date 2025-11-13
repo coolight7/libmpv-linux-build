@@ -16,12 +16,11 @@ mkdir -p _build$cpu_suffix
 cd _build$cpu_suffix
 
 cpu=linux-arm
-[[ "$ndk_triple" == "aarch64"* ]] && cpu=linux-arm64
-[[ "$ndk_triple" == "x86_64"* ]] && cpu=linux-x86_64
-[[ "$ndk_triple" == "i686"* ]] && cpu=linux-x86
+[[ "$cpu_triple" == "aarch64"* ]] && cpu=linux-arm64
+[[ "$cpu_triple" == "x86_64"* ]] && cpu=linux-x86_64
+[[ "$cpu_triple" == "i686"* ]] && cpu=linux-x86
 
 CFLAGS="-fPIC -I$prefix_dir/include -I$prefix_dir/include/brotli" CXXFLAGS="-fPIC -I$prefix_dir/include -I$prefix_dir/include/brotli" LDFLAGS="$LDFLAGS -L$prefix_dir/lib -lz -lzstd -lbrotlicommon -lbrotlidec -lbrotlienc" CONF=1 ../Configure \
-    --cross-compile-prefix=$CC \
     --libdir=lib \
     --release \
     $cpu \

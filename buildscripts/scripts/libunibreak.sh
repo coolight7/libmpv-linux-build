@@ -18,7 +18,7 @@ mkdir -p $build
 cd $build
 
 ../configure \
-        --host=$ndk_triple --with-pic \
+        --host=$cpu_triple --with-pic \
         --enable-static --disable-shared
 
 make -j$cores

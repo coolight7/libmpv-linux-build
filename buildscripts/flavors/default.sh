@@ -19,36 +19,41 @@ cd _build$cpu_suffix
 cpu=armv7-a
 cpuflags=
 asmflags=
-if [[ "$ndk_triple" == "aarch64"* ]]; then
+if [[ "$cpu_triple" == "aarch64"* ]]; then
 	cpu=armv8-a
   	asmflags=" --enable-neon --enable-asm --enable-inline-asm"
-elif [[ "$ndk_triple" == "arm"* ]]; then
+elif [[ "$cpu_triple" == "arm"* ]]; then
  	cpu=armv7-a
 	cpuflags="$cpuflags -mfpu=neon -mcpu=cortex-a8"
 	asmflags=" --enable-neon --enable-asm --enable-inline-asm"
-elif [[ "$ndk_triple" == "x86_64"* ]]; then
+elif [[ "$cpu_triple" == "x86_64"* ]]; then
 	cpu=generic
 	asmflags=" --disable-neon --enable-asm --enable-inline-asm"
-elif [[ "$ndk_triple" == "i686"* ]]; then
+elif [[ "$cpu_triple" == "i686"* ]]; then
 	cpu="i686 --disable-asm"
 	# asm disabled due to this ticket https://trac.ffmpeg.org/ticket/4928
 	asmflags=" --disable-neon --disable-asm --disable-inline-asm"
 fi 
+
+sed -i '/^Libs/ s|-lstdc++| |' $prefix_dir/lib/pkgconfig/*.pc
+sed -i '/^Libs/ s|-lc++_static| |' $prefix_dir/lib/pkgconfig/*.pc
+sed -i '/^Libs/ s|-lc++abi| |' $prefix_dir/lib/pkgconfig/*.pc
+sed -i '/^Libs/ s|-lc++_shared| |' $prefix_dir/lib/pkgconfig/*.pc
+sed -i '/^Libs/ s|-lc++| |' $prefix_dir/lib/pkgconfig/*.pc
 
 # c++std: libjxl、shaderc
 # 链接c++标准库时，如果需要静态链接
 # --extra-ldflags="-L$prefix_dir/lib -lm -nostdlib++ -lc++_static -lc++abi"
 # [vulkan] 会增加 5mb 左右的大小，但可能对ffmpeg用处不大
 ../configure \
-	--target-os=linux --enable-cross-compile --cross-prefix=$ndk_triple- \
-	--arch=${ndk_triple%%-*} --cpu=$cpu \
-	--nm=nm --strip=strip --ranlib=$RANLIB --ar=$AR --cc=$CC --cxx=$CXX \
+	--target-os=linux --arch="x86_64" --cpu="x86-64" \
+	--nm="$NM" --strip=strip --ranlib="$RANLIB" --ar="$AR" --cc="$CC" --cxx="$CXX" \
 	--pkg-config=pkg-config \
-	--stdc=c23 --stdcxx=c++23 \
-	--extra-cflags="-fPIC -Wno-error=int-conversion -Wno-error=incompatible-function-pointer-types -I$prefix_dir/include $cpuflags" \
-	--extra-cxxflags="-fPIC -I$prefix_dir/include $cpuflags" \
-	--extra-ldflags="$LDFLAGS -L$prefix_dir/lib $default_ld_cxx_stdlib -lm" \
 	--pkg-config-flags=--static \
+	--stdc=c23 --stdcxx=c++23 \
+	--extra-cflags="-fPIC -Wno-error=int-conversion -Wno-error=incompatible-pointer-types -I$prefix_dir/include -I/usr/include/pipewire-0.3/ -I/usr/include/spa-0.2/ $cpuflags" \
+	--extra-cxxflags="-fPIC -I$prefix_dir/include -I/usr/include/pipewire-0.3/ -I/usr/include/spa-0.2/ $cpuflags" \
+	--extra-ldflags="$LDFLAGS -L$prefix_dir/lib $default_ld_cxx_stdlib -lstdc++ -lm -lpthread" \
 	\
 	--enable-gpl \
 	--enable-nonfree \
@@ -111,7 +116,6 @@ fi
 	--disable-libzvbi \
 	--disable-libaribcaption \
 	--disable-libxvid \
-	--disable-amf \
 	--disable-libmp3lame \
 	--disable-libssh \
 	--disable-libvpl \
@@ -150,16 +154,16 @@ fi
 	\
 	--disable-d3d11va \
 	--disable-dxva2 \
-	--disable-vaapi \
-	--disable-vdpau \
+	--enable-vaapi \
+	--enable-vdpau \
 	--disable-linux-perf \
 	--disable-appkit \
 	--disable-videotoolbox \
 	--disable-audiotoolbox \
 	--disable-v4l2-m2m \
 	--disable-mmal \
-	--enable-jni \
-	--enable-mediacodec \
+	--disable-jni \
+	--disable-mediacodec \
 	--disable-vulkan \
     --disable-vulkan-static \
 	\
@@ -179,7 +183,6 @@ fi
     --enable-encoder=mjpeg,mjpeg_*,anull,vnull \
 	\
 	--disable-decoders \
-	--enable-decoder=*_mediacodec \
 	--enable-decoder=aac*,ac3*,acelp_*,alac,als,amrnb,amrwb,amv,ansi,anull,ape,apng,atrac*,av1,av1_*,avrn,avrp,avs,avui,bitpacked,bmv_audio,cavs,cbd2_dpcm,cfhd,clearvideo,cljr,cyuv,dca,dds,derf_dpcm,dfpwm,dirac,dnxhd,dolby_e,dpx,dsd_*,dsicinaudio,dsicinvideo,dss_sp,dst,dvaudio,dvvideo,dxtory,dxv,eac3,eacmv,eamad,eatgq,eatgv,eatqi,eightbps,eightsvx_exp,eightsvx_fib,escape124,escape130,evrc,exr,fastaudio,ffv1,ffvhuff,ffwavesynth,fic,fits,flac,flashsv,flashsv2,flv,fmvc,fraps,frwu,ftr,g2m,g729,gdv,gif,gremlin_dpcm,h261,h263*,h264*,hap,hdr,hevc*,hnm4_video,hq_hqa,hqx,huffyuv,hymt,iac,idf,iff_ilbm,ilbc,imc,imm4,imm5,interplay_acm,interplay_dpcm,interplay_video,jpeg2000,jpegls,jv,kgv1,kmvc,lagarith,lead,libdav1d,libdavs2,libjxl*,libopus,libuavs3d,libvorbis,libvpx*,loco,lscr,m101,mace3,mace6,magicyuv,media100,metasound,misc4,mjpeg*,mlp,mmvideo,mobiclip,motionpixels,mp1*,mp2*,mp3*,mpc*,mpeg*,mpl2,msa1,mscc,msmpeg*,msnsiren,msp2,msrle,mss*,msvideo1,mszh,mts2,mv30,mvc1,mvc2,mvdv,mvha,mwsc,mxpeg,notchlc,nuv,on2avc,opus,osq,paf_audio,paf_video,pam,pbm,pcm_*,pcx,pdv,pfm,pgm,pgmyuv,pgx,phm,photocd,pictor,pixlet,pjs,png,ppm,prores,prores_raw,prosumer,ptx,qcelp,qdraw,qoa,qoi,qpeg,qtrle,r10k,r210,ra_144,ra_288,ralf,rasc,rawvideo,rka,rl2,roq,rpza,rscc,rtv1,rv*,s302m,sanm,sbc,scpr,screenpresso,sdx2_dpcm,sga,sgi,sgirle,sheervideo,simbiosis_imx,siren,smackaud,smc,smvjpeg,snow,sonic,sp5x,speedhq,speex,srgc,sunrast,svq1,svq3,tak,targa,targa_y216,tdsc,text,theora,tiff,truehd,truemotion1,truemotion2,truemotion2rt,tscc,tscc2,tta,twinvq,ulti,utvideo,vb,vble,vbn,vc1*,vmdaudio,vmdvideo,vmix,vnull,vorbis,vp*,vqc,vvc*,wady_dpcm,wavarc,wavpack,wbmp,wcmv,webp,wmalossless,wmapro,wmav*,wmv*,wnv1,wrapped_avframe,xbin,xbm,xface,xl,xpm,xwd,y41p,ylc,yop,yuv4,zero12v,zerocodec \
 	\
 	--disable-decoder=zlib,zmbv,aasc,alias_pix,agm,anm,apv,arbc,argo,bmv_video,brender_pix,cdgraphics,cdtoons,cri,cdxl,cllc,cpia,camstudio,dxa,flic,4xm,gem,hnm4video,interplayvideo,mdec,mimic,psd,rasc.rl2,roqvideo,txd,vmnc,asv1,asv2,aura,aura2 \
@@ -240,5 +243,4 @@ fi
 make -s -j$cores
 make -s DESTDIR="$prefix_dir" install > /dev/null
 
-sed -i '/^Libs:/ s|-lstdc++|-lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/libavfilter.pc"
 echo "$(ls -lh $prefix_dir/lib/libav*)"

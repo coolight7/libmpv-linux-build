@@ -21,8 +21,8 @@ sed s/\-mno\-ieee\-fp// -i configure.ac
 mkdir -p _build$cpu_suffix
 cd _build$cpu_suffix
 
-STL_LIBS="-l$default_cxx_stl"  ../configure \
-	--host=$ndk_triple \
+STL_LIBS="$default_cxx_stl" CXXFLAGS="-include cstdint" ../configure \
+	--host=$cpu_triple \
     --disable-shared \
     --enable-static \
 	--with-pic 
@@ -31,4 +31,4 @@ STL_LIBS="-l$default_cxx_stl"  ../configure \
 make -j$cores
 make DESTDIR="$prefix_dir" install
 
-sed -i '/^Libs.private:/ s|-lstdc++|-lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/zimg.pc"
+# sed -i '/^Libs.private:/ s|-lstdc++|-lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/zimg.pc"

@@ -17,5 +17,5 @@ jobs:
         working-directory: ./buildscripts
         run: |
           source ~/.bashrc
-          sudo chmod +x bundle_default.sh
+          chmod +x bundle_default.sh
           ./bundle_default.sh

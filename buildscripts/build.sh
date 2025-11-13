@@ -20,43 +20,43 @@ loadarch () {
 	unset CC CXX CPATH LIBRARY_PATH C_INCLUDE_PATH CPLUS_INCLUDE_PATH
     unset CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
 
-	# ndk_triple: what the toolchain actually is
+	# cpu_triple: what the toolchain actually is
 	# cc_triple: what Google pretends the toolchain is
 	if [ "$1" == "armv7l" ]; then
 		export cpu_suffix=
-		export ndk_triple=arm-linux-gnu
-		cc_triple=armv7a-linux-gnu
+		export cpu_triple=arm-pc-linux-gnu
+		cc_triple=armv7a-pc-linux-gnu
 		prefix_name=armeabi-v7a
 	elif [ "$1" == "arm64" ]; then
 		export cpu_suffix=-arm64
-		export ndk_triple=aarch64-linux-gnu
-		cc_triple=$ndk_triple
+		export cpu_triple=aarch64-pc-linux-gnu
+		cc_triple=$cpu_triple
 		prefix_name=arm64-v8a
 	elif [ "$1" == "x86" ]; then
 		export cpu_suffix=-x86
-		export ndk_triple=i686-linux-gnu
-		cc_triple=$ndk_triple
+		export cpu_triple=i686-pc-linux-gnu
+		cc_triple=$cpu_triple
 		prefix_name=x86
 	elif [ "$1" == "x86_64" ]; then
 		export cpu_suffix=-x64
-		export ndk_triple=x86_64-linux-gnu
-		cc_triple=$ndk_triple
+		export cpu_triple=x86_64-pc-linux-gnu
+		cc_triple=$cpu_triple
 		prefix_name=x86_64
 	else
 		echo "Invalid architecture"
 		exit 1
 	fi
 	export current_abi_name=$prefix_name
-	export default_cxx_stl="c++_shared"
-	export default_ld_cxx_stdlib_unset=" -nostdlib++ "
-	export default_ld_cxx_stdlib=" -nostdlib++ -l$default_cxx_stl -lc++abi "
-	export default_ld_cxx_stdlib_mediaxx=" -nostdlib++ -lc++_shared -lc++abi "
+	export default_cxx_stl=" "
+	export default_ld_cxx_stdlib_unset=" "
+	export default_ld_cxx_stdlib="  "
+	export default_ld_cxx_stdlib_mediaxx="  "
 	export build_home_dir="$PWD/../"
 	export prefix_dir="$PWD/prefix/$prefix_name"
 	export source_dir="$PWD/deps/"
 	export CFLAGS="-fPIC"
 	export CXXFLAGS="-fPIC"
-	export LDFLAGS="-Wl,-O2,--icf=safe "
+	export LDFLAGS="-Wl,-O2"
 	export CC=$cc_triple-gcc
 	export CXX=$cc_triple-g++
 	if [[ "$1" == arm* ]]; then
@@ -64,8 +64,9 @@ loadarch () {
 	else
 		export AS="nasm"
 	fi
-	export AR=ar
-	export RANLIB=ranlib
+	export AR="/usr/local/bin/gcc-ar"
+	export NM="/usr/local/bin/gcc-nm"
+	export RANLIB="/usr/local/bin/gcc-ranlib"
 }
 
 setup_prefix () {
@@ -79,7 +80,7 @@ setup_prefix () {
 		ln -s . "$prefix_dir/local"
 	fi
 
-	local cpu_family=${ndk_triple%%-*}
+	local cpu_family=${cpu_triple%%-*}
 	[ "$cpu_family" == "i686" ] && cpu_family=x86
 	
 	. ./include/path.sh
@@ -95,13 +96,13 @@ wrap_mode = 'nodownload'
 [binaries]
 c = '$CC'
 cpp = '$CXX'
-ar = 'ar'
-nm = 'nm'
+ar = '$AR'
+nm = '$NM'
 strip = 'strip'
 pkg-config = 'pkg-config'
 
 [properties]
-pkg_config_path = '$prefix_dir/lib/pkgconfig'
+pkg_config_path = '$prefix_dir/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/lib/x86_64-linux-gnu/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig'
 
 [host_machine]
 system = 'linux'
@@ -148,7 +149,7 @@ build () {
 
 	pushd deps/$1
 	BUILDSCRIPT=../../scripts/$1.sh
- 	sudo chmod +x $BUILDSCRIPT
+ 	chmod +x $BUILDSCRIPT
 	$BUILDSCRIPT clean
 
     $BUILDSCRIPT build

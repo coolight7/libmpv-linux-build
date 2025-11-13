@@ -18,18 +18,18 @@ mkdir -p $build
 cd $build
 
 cpu=
-[[ "$ndk_triple" == "aarch64"* ]] && cpu=aarch64
-[[ "$ndk_triple" == "x86_64"* ]] && cpu=x86_64
-[[ "$ndk_triple" == "i686"* ]] && cpu=x86
+[[ "$cpu_triple" == "aarch64"* ]] && cpu=aarch64
+[[ "$cpu_triple" == "x86_64"* ]] && cpu=x86_64
+[[ "$cpu_triple" == "i686"* ]] && cpu=x86
 
 CONF=1 "${MY_CMAKE_EXE_DIR}/cmake" -S.. -B. \
     -G Ninja \
     -DCMAKE_SYSTEM_NAME=Linux \
     -DCMAKE_SYSTEM_PROCESSOR=${cpu} \
+    -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
     -DCMAKE_C_FLAGS=-fPIC -DCMAKE_CXX_FLAGS=-fPIC \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_LIBDIR=lib \
-    -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
     -DBUILD_SHARED_LIBS=OFF \
     -DWEBP_BUILD_ANIM_UTILS=OFF \
     -DWEBP_BUILD_EXTRAS=OFF \

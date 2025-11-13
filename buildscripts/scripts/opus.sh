@@ -24,7 +24,7 @@ mkdir -p _build$cpu_suffix
 cd _build$cpu_suffix
 
 ../configure \
-	--host=$ndk_triple \
+	--host=$cpu_triple \
     --disable-shared \
     --enable-static \
 	--with-pic \

@@ -28,9 +28,9 @@ if [ -f "$prefix_dir/lib/libavcodec.a" ]; then
 fi
 
 cpu=
-[[ "$ndk_triple" == "aarch64"* ]] && cpu=aarch64
-[[ "$ndk_triple" == "x86_64"* ]] && cpu=x86_64
-[[ "$ndk_triple" == "i686"* ]] && cpu=x86
+[[ "$cpu_triple" == "aarch64"* ]] && cpu=aarch64
+[[ "$cpu_triple" == "x86_64"* ]] && cpu=x86_64
+[[ "$cpu_triple" == "i686"* ]] && cpu=x86
 
 # cmake 可能会在配置后调用 ninja -C build -t recompact
 # 可执行文件 ninja 可能不同，可以在 PATH 中配置提高优先级 $MY_CMAKE_EXE_DIR/（已在 ../../include/path.sh 中）
@@ -38,11 +38,11 @@ CONF=1 "${MY_CMAKE_EXE_DIR}/cmake" -S.. -B. \
     -G Ninja \
     -DCMAKE_SYSTEM_NAME=Linux \
     -DCMAKE_SYSTEM_PROCESSOR=${cpu} \
+    -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
     -DCMAKE_C_FLAGS=-fPIC -DCMAKE_CXX_FLAGS=-fPIC \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DCMAKE_INSTALL_LIBDIR=lib \
-    -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
     -DBUILD_SHARED_LIBS=OFF \
     -DBUILD_TESTS=OFF \
     -DBUILD_LSR_TESTS=OFF \

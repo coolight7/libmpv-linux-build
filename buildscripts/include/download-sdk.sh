@@ -9,14 +9,14 @@
 
 if [ $TRAVIS -eq 0 ]; then
 	hash yum &>/dev/null && {
-		sudo yum install autoconf pkgconfig libtool ninja-build unzip \
+		yum install autoconf pkgconfig libtool ninja-build unzip \
 		python3-pip python3-setuptools unzip wget;
-		sudo pip3 install meson; }
+		pip3 install meson; }
 	apt-get -v &>/dev/null && {
-		sudo apt-get update;
-		sudo apt-get install -y autoconf pkg-config libtool ninja-build nasm unzip po4a libgtest-dev autopoint gperf gettext \
+		apt-get update;
+		apt-get install -y autoconf pkg-config libtool ninja-build nasm unzip po4a libgtest-dev autopoint gperf gettext \
 		python3-pip python3-setuptools unzip;
-		sudo pip3 install meson; }
+		pip3 install meson; }
 fi
 
 os_ndk="linux"

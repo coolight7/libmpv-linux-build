@@ -19,20 +19,20 @@ cd $build
 
 
 cpu=
-[[ "$ndk_triple" == "aarch64"* ]] && cpu=aarch64
-[[ "$ndk_triple" == "x86_64"* ]] && cpu=x86_64
-[[ "$ndk_triple" == "i686"* ]] && cpu=x86
+[[ "$cpu_triple" == "aarch64"* ]] && cpu=aarch64
+[[ "$cpu_triple" == "x86_64"* ]] && cpu=x86_64
+[[ "$cpu_triple" == "i686"* ]] && cpu=x86
 
 LTO_JOB=1 CONF=1 "${MY_CMAKE_EXE_DIR}/cmake" -S.. -B. \
     -G Ninja \
     -DCMAKE_SYSTEM_NAME=Linux \
     -DCMAKE_SYSTEM_PROCESSOR=${cpu} \
+    -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
     -DCMAKE_C_FLAGS=-fPIC \
 	-DCMAKE_CXX_FLAGS="-fPIC -std=c++17" \
     -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_INSTALL_PREFIX=/usr/local/ \
     -DCMAKE_INSTALL_LIBDIR=lib \
-    -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
     -DBUILD_SHARED_LIBS=OFF \
 	-DSHADERC_SKIP_TESTS=ON \
 	-DSHADERC_SKIP_SPVC=ON \
@@ -54,5 +54,5 @@ cp -f "./libshaderc/libshaderc_combined.a" "$prefix_dir/lib/libshaderc_combined.
 cp -f "./shaderc_combined.pc" "$prefix_dir/lib/pkgconfig/shaderc_combined.pc"
 cp -f "./shaderc_combined.pc" "$prefix_dir/lib/pkgconfig/shaderc.pc"
 
-sed '/^Libs:/ s|$| -lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/shaderc.pc" -i
-sed '/^Libs:/ s|$| -lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/shaderc_combined.pc" -i
+# sed '/^Libs:/ s|$| -lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/shaderc.pc" -i
+# sed '/^Libs:/ s|$| -lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/shaderc_combined.pc" -i

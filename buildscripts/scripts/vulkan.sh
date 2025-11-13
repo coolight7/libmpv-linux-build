@@ -17,7 +17,6 @@ build=_build$cpu_suffix
 mkdir -p $build
 cd $build
 
-
 cpu=
 [[ "$cpu_triple" == "aarch64"* ]] && cpu=aarch64
 [[ "$cpu_triple" == "x86_64"* ]] && cpu=x86_64
@@ -28,17 +27,17 @@ CONF=1 "${MY_CMAKE_EXE_DIR}/cmake" -S.. -B. \
     -DCMAKE_SYSTEM_NAME=Linux \
     -DCMAKE_SYSTEM_PROCESSOR=${cpu} \
     -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
-    -DCMAKE_C_FLAGS=-fPIC -DCMAKE_CXX_FLAGS=-fPIC \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_LIBDIR=lib \
-    -DBUILD_SHARED_LIBS=OFF \
-    -DBUILD_STATIC=ON \
-    -DBUILD_BINARY=OFF \
-    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+    -DVULKAN_HEADERS_INSTALL_DIR=${prefix_dir} \
+    -DBUILD_TESTS=OFF \
+    -DENABLE_WERROR=OFF \
+    -DUSE_GAS=ON \
+    -DBUILD_STATIC_LOADER=ON \
+    -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -D__STDC_FORMAT_MACROS -DSTRSAFE_NO_DEPRECATE -Dparse_number=cjson_parse_number' \
+    -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -D__STDC_FORMAT_MACROS -fpermissive' \
 
+DESTDIR="$prefix_dir" "${MY_NINJA_EXE_DIR}/ninja" -C 
 
+cp $build/loader/libvulkan.a $prefix_dir/lib/libvulkan.a
+cp $build/loader/vulkan_own.pc $prefix_dir/lib/pkgconfig/vulkan.pc
 
-"${MY_NINJA_EXE_DIR}/ninja" -C .
-DESTDIR="$prefix_dir" "${MY_NINJA_EXE_DIR}/ninja" -C . install
-
-# sed -i '/^Libs.private:/ s|-lstdc++|-lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/uchardet.pc"

@@ -18,19 +18,21 @@ mkdir -p $build
 cd $build
 
 cpu=
-[[ "$ndk_triple" == "aarch64"* ]] && cpu=aarch64
-[[ "$ndk_triple" == "x86_64"* ]] && cpu=x86_64
-[[ "$ndk_triple" == "i686"* ]] && cpu=x86
+[[ "$cpu_triple" == "aarch64"* ]] && cpu=aarch64
+[[ "$cpu_triple" == "x86_64"* ]] && cpu=x86_64
+[[ "$cpu_triple" == "i686"* ]] && cpu=x86
 
 CONF=1 "${MY_CMAKE_EXE_DIR}/cmake" -S.. -B. \
     -G Ninja \
     -DCMAKE_SYSTEM_NAME=Linux \
     -DCMAKE_SYSTEM_PROCESSOR=${cpu} \
+    -DCMAKE_AR="$AR" \
+    -DCMAKE_RANLIB="$RANLIB" \
     -DCMAKE_C_FLAGS=-fPIC \
-	-DCMAKE_CXX_FLAGS="-fPIC -std=c++17" \
+	-DCMAKE_CXX_FLAGS="-fPIC -std=c++23" \
+    -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_LIBDIR=lib \
-    -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
     -DBUILD_SHARED_LIBS=OFF \
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
     -DJPEGXL_STATIC=ON \
@@ -48,17 +50,14 @@ CONF=1 "${MY_CMAKE_EXE_DIR}/cmake" -S.. -B. \
     -DJPEGXL_ENABLE_DEVTOOLS=OFF \
     -DJPEGXL_ENABLE_BENCHMARK=OFF \
     -DJPEGXL_ENABLE_SJPEG=OFF \
-    -DJPEGXL_ENABLE_HWY_AVX3=ON \
-    -DJPEGXL_ENABLE_HWY_AVX3_ZEN4=ON \
-    -DJPEGXL_ENABLE_HWY_AVX3_SPR=ON \
-    -DJPEGXL_FORCE_SYSTEM_LCMS2=ON \
-    -DJPEGXL_FORCE_SYSTEM_BROTLI=ON \
-    -DJPEGXL_FORCE_SYSTEM_HWY=ON \
+    -DJPEGXL_ENABLE_HWY_AVX3=OFF \
+    -DJPEGXL_ENABLE_HWY_AVX3_ZEN4=OFF \
+    -DJPEGXL_ENABLE_HWY_AVX3_SPR=OFF \
 
 
 "${MY_NINJA_EXE_DIR}/ninja" -C .
 DESTDIR="$prefix_dir" "${MY_NINJA_EXE_DIR}/ninja" -C . install
 
-sed -i '/^Libs: -L${libdir} -ljxl / s|-lc++ |-lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/libjxl.pc"
-sed -i '/^Libs.private:/ s|-lc++ |-lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/libjxl_cms.pc"
-sed '/^Libs.private:/ s|$| -lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/libjxl_threads.pc" -i
+# sed -i '/^Libs: -L${libdir} -ljxl / s|-lc++ |-lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/libjxl.pc"
+# sed -i '/^Libs.private:/ s|-lc++ |-lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/libjxl_cms.pc"
+# sed '/^Libs.private:/ s|$| -lc++_static -lc++abi|' "$prefix_dir/lib/pkgconfig/libjxl_threads.pc" -i

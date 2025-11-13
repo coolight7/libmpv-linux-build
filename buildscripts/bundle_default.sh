@@ -4,10 +4,10 @@ export build_home_dir="$PWD/../"
 
 # TODO: coolight --- temp
 # if [ ! -f "deps" ]; then
-#   sudo rm -rf deps
+#   rm -rf deps
 # fi
 # if [ ! -f "prefix" ]; then
-#   sudo rm -rf prefix
+#   rm -rf prefix
 # fi
 
 # ./download.sh
@@ -47,8 +47,6 @@ stripLib libavdevice.so
 stripLib libswresample.so
 stripLib libswscale.so
 
-stripLib stdcxx/libc++_shared.so
-
 # --------------------------------------------------
 
 copyLib() {
@@ -58,16 +56,15 @@ copyLib() {
   fi
 
   mkdir -p app/build/outputs/release/lib/$1/
-  cp ../../prefix/$1/lib/stdcxx/libc++_shared.so                          app/build/outputs/release/lib/$1/
-  cp ../../prefix/$1/lib/libmediaxx.so                                    app/build/outputs/release/lib/$1/
-  cp ../../prefix/$1/lib/libmpv.so                                        app/build/outputs/release/lib/$1/
-  cp ../../prefix/$1/lib/ffmpeg-backup/libswresample.so                   app/build/outputs/release/lib/$1/
-  cp ../../prefix/$1/lib/ffmpeg-backup/libswscale.so                      app/build/outputs/release/lib/$1/
-  cp ../../prefix/$1/lib/ffmpeg-backup/libavutil.so                       app/build/outputs/release/lib/$1/
-  cp ../../prefix/$1/lib/ffmpeg-backup/libavcodec.so                      app/build/outputs/release/lib/$1/
-  cp ../../prefix/$1/lib/ffmpeg-backup/libavformat.so                     app/build/outputs/release/lib/$1/
-  cp ../../prefix/$1/lib/ffmpeg-backup/libavfilter.so                     app/build/outputs/release/lib/$1/
-  cp ../../prefix/$1/lib/ffmpeg-backup/libavdevice.so                     app/build/outputs/release/lib/$1/
+  cp prefix/$1/lib/libmediaxx.so                                    app/build/outputs/release/lib/$1/
+  cp prefix/$1/lib/libmpv.so                                        app/build/outputs/release/lib/$1/
+  cp prefix/$1/lib/ffmpeg-backup/libswresample.so                   app/build/outputs/release/lib/$1/
+  cp prefix/$1/lib/ffmpeg-backup/libswscale.so                      app/build/outputs/release/lib/$1/
+  cp prefix/$1/lib/ffmpeg-backup/libavutil.so                       app/build/outputs/release/lib/$1/
+  cp prefix/$1/lib/ffmpeg-backup/libavcodec.so                      app/build/outputs/release/lib/$1/
+  cp prefix/$1/lib/ffmpeg-backup/libavformat.so                     app/build/outputs/release/lib/$1/
+  cp prefix/$1/lib/ffmpeg-backup/libavfilter.so                     app/build/outputs/release/lib/$1/
+  cp prefix/$1/lib/ffmpeg-backup/libavdevice.so                     app/build/outputs/release/lib/$1/
 }
 
 copyLib arm64-v8a

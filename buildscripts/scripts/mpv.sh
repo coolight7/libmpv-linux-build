@@ -17,11 +17,11 @@ fi
 unset CC CXX # meson wants these unset
 
 # 清理标准库依赖
-sed -i '/^Libs:/ s|-lstdc++| |' $prefix_dir/lib/pkgconfig/*.pc
-sed -i '/^Libs:/ s|-lc++_static| |' $prefix_dir/lib/pkgconfig/*.pc
-sed -i '/^Libs:/ s|-lc++abi| |' $prefix_dir/lib/pkgconfig/*.pc
-sed -i '/^Libs:/ s|-lc++_shared| |' $prefix_dir/lib/pkgconfig/*.pc
-sed -i '/^Libs:/ s|-lc++| |' $prefix_dir/lib/pkgconfig/*.pc
+sed -i '/^Libs/ s|-lstdc++| |' $prefix_dir/lib/pkgconfig/*.pc
+sed -i '/^Libs/ s|-lc++_static| |' $prefix_dir/lib/pkgconfig/*.pc
+sed -i '/^Libs/ s|-lc++abi| |' $prefix_dir/lib/pkgconfig/*.pc
+sed -i '/^Libs/ s|-lc++_shared| |' $prefix_dir/lib/pkgconfig/*.pc
+sed -i '/^Libs/ s|-lc++| |' $prefix_dir/lib/pkgconfig/*.pc
 
 # 可用于限制导出的符号
 # CFLAGS、CXXFLAGS 中添加  -fvisibility=hidden
@@ -30,8 +30,8 @@ mpv_EXPORT_IDS=$build_home_dir/buildscripts/mpv-export.lds
 
 # c++std: libjxl、shaderc
 # 由 mediaxx 静态链接标准库并导出符号，libmpv 动态链接使用
-CFLAGS="-I$prefix_dir/include" CXXFLAGS="-I$prefix_dir/include" LDFLAGS="$LDFLAGS -L$prefix_dir/lib/ $default_ld_cxx_stdlib -lm" meson setup $build \
-	--cross-file "$prefix_dir"/crossfile.txt \
+CFLAGS="-I$prefix_dir/include -I/usr/include/pipewire-0.3/ -I/usr/include/spa-0.2/" CXXFLAGS="-I$prefix_dir/include -I/usr/include/pipewire-0.3/ -I/usr/include/spa-0.2/" LDFLAGS="$LDFLAGS -L$prefix_dir/lib/ $default_ld_cxx_stdlib -lm" meson setup $build \
+	--cross-file "$prefix_dir/crossfile.txt" \
 	--default-library static \
     -Dbuildtype=release \
     -Db_lto=true \
@@ -61,22 +61,25 @@ CFLAGS="-I$prefix_dir/include" CXXFLAGS="-I$prefix_dir/include" LDFLAGS="$LDFLAG
 	-Drubberband=enabled \
 	-Dlcms2=enabled \
 	\
+	-Dalsa=enabled \
+	-Dpipewire=enabled \
+	-Dpulse=enabled \
+	-Dsdl2-audio=disabled \
+    -Dopensles=disabled \
+	\
+	-Dx11=enabled \
+	-Dwayland=enabled \
+	-Degl=enabled \
+	-Dplain-gl=enabled \
+	-Dgl=enabled \
+	-Dvaapi-drm=disabled \
+	-Dvulkan=disabled \
+	-Dsdl2-video=disabled \
 	-Dcaca=disabled \
 	-Dsixel=disabled \
-	-Dwayland=disabled \
-	-Dx11=disabled \
-	-Dalsa=disabled \
-	-Dpulse=disabled \
-	-Dsdl2-audio=disabled \
-	-Dsdl2-video=disabled \
-	-Degl=disabled \
-	-Dplain-gl=disabled \
-    -Dopensles=enabled \
-	-Degl-android=enabled \
-	-Dgl=enabled \
-	-Dvulkan=disabled \
 	\
-	-Dandroid-media-ndk=enabled \
+	-Dcuda-hwaccel=disabled \
+	-Dcuda-interop=disabled \
 
 
 "${MY_NINJA_EXE_DIR}/ninja" -C $build -j$cores

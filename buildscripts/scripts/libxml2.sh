@@ -20,10 +20,10 @@ cd $build
 CONF=1 "${MY_CMAKE_EXE_DIR}/cmake" -S.. -B. \
     -G Ninja \
     -DCMAKE_SYSTEM_NAME=Linux \
+    -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
     -DCMAKE_C_FLAGS=-fPIC -DCMAKE_CXX_FLAGS=-fPIC \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_LIBDIR=lib \
-    -DCMAKE_FIND_ROOT_PATH=${prefix_dir} \
     -DBUILD_SHARED_LIBS=OFF \
     -DLIBXML2_WITH_ZLIB=ON \
     -DLIBXML2_WITH_ICONV=ON \

@@ -23,7 +23,7 @@ sed s/\-mno\-ieee\-fp// -i configure.ac
 
 unset CC CXX # meson wants these unset
 
-# 需要安装 sudo apt install -y autopoint gperf gettext
+# 需要安装 apt install -y autopoint gperf gettext
 CFLAGS="-fPIC -D_GNU_SOURCE" CXXFLAGS="-fPIC -D_GNU_SOURCE" meson setup $build --cross-file "$prefix_dir"/crossfile.txt -Ddefault_library=static \
         --libdir=lib \
         --buildtype=release \
