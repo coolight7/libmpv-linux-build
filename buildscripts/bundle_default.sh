@@ -49,56 +49,36 @@ stripLib libswscale.so
 
 # --------------------------------------------------
 
+rm -rf $build_home_dir/output/
+mkdir -p $build_home_dir/output/
+
 copyLib() {
   if [[ $1 != "arm64-v8a" && $1 != "armeabi-v7a" && $1 != "x86" && $1 != "x86_64" ]]; then
     echo "call copyLib 参数 {cpu} 不正确: $1"
     exit -1
   fi
 
-  mkdir -p app/build/outputs/release/lib/$1/
-  cp prefix/$1/lib/libmediaxx.so                                    app/build/outputs/release/lib/$1/
-  cp prefix/$1/lib/libmpv.so                                        app/build/outputs/release/lib/$1/
-  cp prefix/$1/lib/ffmpeg-backup/libswresample.so                   app/build/outputs/release/lib/$1/
-  cp prefix/$1/lib/ffmpeg-backup/libswscale.so                      app/build/outputs/release/lib/$1/
-  cp prefix/$1/lib/ffmpeg-backup/libavutil.so                       app/build/outputs/release/lib/$1/
-  cp prefix/$1/lib/ffmpeg-backup/libavcodec.so                      app/build/outputs/release/lib/$1/
-  cp prefix/$1/lib/ffmpeg-backup/libavformat.so                     app/build/outputs/release/lib/$1/
-  cp prefix/$1/lib/ffmpeg-backup/libavfilter.so                     app/build/outputs/release/lib/$1/
-  cp prefix/$1/lib/ffmpeg-backup/libavdevice.so                     app/build/outputs/release/lib/$1/
+  mkdir -p $build_home_dir/output/$1/
+  cp prefix/$1/lib/libmediaxx.so               $build_home_dir/output/$1/
+  cp prefix/$1/lib/libmpv.so                   $build_home_dir/output/$1/
+  cp prefix/$1/lib/libswresample.so            $build_home_dir/output/$1/
+  cp prefix/$1/lib/libswscale.so               $build_home_dir/output/$1/
+  cp prefix/$1/lib/libavutil.so                $build_home_dir/output/$1/
+  cp prefix/$1/lib/libavcodec.so               $build_home_dir/output/$1/
+  cp prefix/$1/lib/libavformat.so              $build_home_dir/output/$1/
+  cp prefix/$1/lib/libavfilter.so              $build_home_dir/output/$1/
+  cp prefix/$1/lib/libavdevice.so              $build_home_dir/output/$1/
+
+  cp $build_home_dir/help/*                    $build_home_dir/output/$1/
+	pushd $build_home_dir/output/$1/
+  ./create_comm_syms.sh
+  popd
 }
 
 copyLib arm64-v8a
 copyLib armeabi-v7a
 copyLib x86
 copyLib x86_64
-
-cd app/build/outputs/release
-
-rm -rf $build_home_dir/output/
-mkdir -p $build_home_dir/output/
-
-resetSONAME() {
-  if [[ $1 != "arm64-v8a" && $1 != "armeabi-v7a" && $1 != "x86" && $1 != "x86_64" ]]; then
-    echo "call resetSONAME 参数 {cpu} 不正确: $1"
-    exit -1
-  fi
-
-  mkdir -p $build_home_dir/output/$1/
-  cp lib/$1/lib*.so             $build_home_dir/output/$1/
-  cp $build_home_dir/help/*     $build_home_dir/output/$1/
-  # rm lib/$1/libc++*.so
-  zip -r default-$1.zip         lib/$1/lib*.so
-  cp default-$1.zip             $build_home_dir/output/
-
-	pushd $build_home_dir/output/$1/
-  ./create_comm_syms.sh
-  popd
-}
-
-resetSONAME arm64-v8a
-resetSONAME armeabi-v7a
-resetSONAME x86
-resetSONAME x86_64
 
 cat $build_home_dir/output/arm64-v8a/comm_cxx_syms.txt \
     $build_home_dir/output/armeabi-v7a/comm_cxx_syms.txt \
@@ -120,8 +100,6 @@ cat $build_home_dir/output/arm64-v8a/libmpv_def_syms.txt \
     $build_home_dir/output/x86/libmpv_def_syms.txt \
     $build_home_dir/output/x86_64/libmpv_def_syms.txt \
     | sort | uniq > $build_home_dir/output/libmpv_def_syms.txt
-
-md5sum *.zip
 
 echo "current dir: vvvvvvvvvvvvvvvvvvvv"
 pwd
