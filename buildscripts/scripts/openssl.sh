@@ -20,7 +20,7 @@ cpu=linux-arm
 [[ "$cpu_triple" == "x86_64"* ]] && cpu=linux-x86_64
 [[ "$cpu_triple" == "i686"* ]] && cpu=linux-x86
 
-CFLAGS="-fPIC -I$prefix_dir/include -I$prefix_dir/include/brotli" CXXFLAGS="-fPIC -I$prefix_dir/include -I$prefix_dir/include/brotli" LDFLAGS="$LDFLAGS -L$prefix_dir/lib -lz -lzstd -lbrotlicommon -lbrotlidec -lbrotlienc" CONF=1 ../Configure \
+CFLAGS="$CFLAGS -fPIC -I$prefix_dir/include -I$prefix_dir/include/brotli" CXXFLAGS="$CXXFLAGS -fPIC -I$prefix_dir/include -I$prefix_dir/include/brotli" LDFLAGS="$LDFLAGS -L$prefix_dir/lib -lz -lzstd -lbrotlicommon -lbrotlidec -lbrotlienc" CONF=1 ../Configure \
     --libdir=lib \
     --release \
     $cpu \

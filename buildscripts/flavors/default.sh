@@ -41,6 +41,10 @@ sed -i '/^Libs/ s|-lc++abi| |' $prefix_dir/lib/pkgconfig/*.pc
 sed -i '/^Libs/ s|-lc++_shared| |' $prefix_dir/lib/pkgconfig/*.pc
 sed -i '/^Libs/ s|-lc++| |' $prefix_dir/lib/pkgconfig/*.pc
 
+# 此时 [PKG_CONFIG_SYSROOT_DIR] 会导致 [PKG_CONFIG_LIBDIR] 搜索到的系统库目录内的库的 include 和 libdir 搜索路径错误，但由于额外指定了正确的 include和链接库搜索目录，因此不影响
+export PKG_CONFIG_SYSROOT_DIR="$prefix_dir"
+export PKG_CONFIG_LIBDIR="$prefix_dir/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/lib/x86_64-linux-gnu/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
+
 # c++std: libjxl、shaderc
 # 链接c++标准库时，如果需要静态链接
 # --extra-ldflags="-L$prefix_dir/lib -lm -nostdlib++ -lc++_static -lc++abi"
@@ -51,8 +55,8 @@ sed -i '/^Libs/ s|-lc++| |' $prefix_dir/lib/pkgconfig/*.pc
 	--pkg-config=pkg-config \
 	--pkg-config-flags=--static \
 	--stdc=c23 --stdcxx=c++23 \
-	--extra-cflags="-fPIC -Wno-error=int-conversion -Wno-error=incompatible-pointer-types -I$prefix_dir/include -I/usr/include/pipewire-0.3/ -I/usr/include/spa-0.2/ $cpuflags" \
-	--extra-cxxflags="-fPIC -I$prefix_dir/include -I/usr/include/pipewire-0.3/ -I/usr/include/spa-0.2/ $cpuflags" \
+	--extra-cflags="$CFLAGS -fPIC -Wno-error=int-conversion -Wno-error=incompatible-pointer-types -I$prefix_dir/include -I/usr/include/pipewire-0.3/ -I/usr/include/spa-0.2/ $cpuflags" \
+	--extra-cxxflags="$CXXFLAGS -fPIC -I$prefix_dir/include -I/usr/include/pipewire-0.3/ -I/usr/include/spa-0.2/ $cpuflags" \
 	--extra-ldflags="$LDFLAGS -L$prefix_dir/lib $default_ld_cxx_stdlib -lstdc++ -lm -lpthread" \
 	\
 	--enable-gpl \

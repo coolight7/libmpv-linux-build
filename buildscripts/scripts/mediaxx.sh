@@ -35,12 +35,15 @@ sed -i '/^Libs/ s|-lc++| |' $prefix_dir/lib/pkgconfig/*.pc
 # mediaxx: EXPORT_ALL_SYMBOL=ON
 # mpv: --prefer-static
 
+export PKG_CONFIG_SYSROOT_DIR="$prefix_dir"
+export PKG_CONFIG_LIBDIR="$prefix_dir/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/lib/x86_64-linux-gnu/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
+
 cpu=
 [[ "$cpu_triple" == "aarch64"* ]] && cpu=aarch64
 [[ "$cpu_triple" == "x86_64"* ]] && cpu=x86_64
 [[ "$cpu_triple" == "i686"* ]] && cpu=x86
 
-LDFLAGS="$LDFLAGS -L$prefix_dir/lib/ $default_ld_cxx_stdlib_mediaxx -lm" CXXFLAGS="-fPIC" "${MY_CMAKE_EXE_DIR}/cmake" -S.. -B. \
+LDFLAGS="$LDFLAGS -L$prefix_dir/lib/ $default_ld_cxx_stdlib_mediaxx -lm" CXXFLAGS="$CXXFLAGS -fPIC" "${MY_CMAKE_EXE_DIR}/cmake" -S.. -B. \
     -G Ninja \
     -DCMAKE_SYSTEM_NAME=Linux \
     -DCMAKE_SYSTEM_PROCESSOR=${cpu} \

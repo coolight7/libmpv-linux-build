@@ -34,7 +34,6 @@ CONF=1 "${MY_CMAKE_EXE_DIR}/cmake" -S.. -B. \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_LIBDIR=lib \
     -DCMAKE_FIND_ROOT_PATH="/" \
-    -DINSTALL_PKGCONFIG_DIR=${prefix_dir}/lib/pkgconfig \
     -DBUILD_SHARED_LIBS=OFF \
     -DSKIP_INSTALL_LIBRARIES=OFF \
     -DZLIB_COMPAT=ON \

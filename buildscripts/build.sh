@@ -50,13 +50,13 @@ loadarch () {
 	export default_cxx_stl=" "
 	export default_ld_cxx_stdlib_unset=" "
 	export default_ld_cxx_stdlib="  "
-	export default_ld_cxx_stdlib_mediaxx="  "
+	export default_ld_cxx_stdlib_mediaxx=" -static-libstdc++ -static-libgcc "
 	export build_home_dir="$PWD/../"
 	export prefix_dir="$PWD/prefix/$prefix_name"
 	export source_dir="$PWD/deps/"
-	export CFLAGS="-fPIC"
-	export CXXFLAGS="-fPIC"
-	export LDFLAGS="-Wl,-O2"
+	export CFLAGS="-fPIC -ffunction-sections -fdata-sections "
+	export CXXFLAGS="-fPIC -ffunction-sections -fdata-sections "
+	export LDFLAGS="-Wl,-O2 -Wl,--gc-sections"
 	export CC=$cc_triple-gcc
 	export CXX=$cc_triple-g++
 	if [[ "$1" == arm* ]]; then
@@ -92,6 +92,16 @@ setup_prefix () {
 buildtype = 'release'
 default_library = 'static'
 wrap_mode = 'nodownload'
+c_args = [
+	'-fPIC',
+	'-ffunction-sections',
+	'-fdata-sections '
+]
+cxx_args = [
+	'-fPIC',
+	'-ffunction-sections',
+	'-fdata-sections '
+]
 
 [binaries]
 c = '$CC'
