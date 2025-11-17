@@ -23,8 +23,9 @@ cp flavors/default.sh scripts/ffmpeg.sh
 # --------------------------------------------------
 
 # coolight --- temp
-# ./build.sh
-./build.sh --prebuild-rm-ff-mpv
+# ./build.sh 
+./build.sh --prebuild-rm-mediaxx
+# ./build.sh --prebuild-rm-ff-mpv
 
 if [ $? -ne 0 ]; then
   exit -1
@@ -68,6 +69,8 @@ copyLib() {
   cp prefix/$1/lib/libavformat.so              $build_home_dir/output/$1/
   cp prefix/$1/lib/libavfilter.so              $build_home_dir/output/$1/
   cp prefix/$1/lib/libavdevice.so              $build_home_dir/output/$1/
+
+  #  for lib in $(ldd libmediaxx.so | grep -oP '(?<==>\s)\S+'); do echo "$lib"; done
 
   cp $build_home_dir/help/*                    $build_home_dir/output/$1/
 	pushd $build_home_dir/output/$1/

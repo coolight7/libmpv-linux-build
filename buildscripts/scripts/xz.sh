@@ -24,7 +24,6 @@ cd _build$cpu_suffix
 # apt install po4a
 
 ../configure \
-    CFLAGS=-fPIC CXXFLAGS=-fPIC \
 	--host=$cpu_triple \
     --disable-shared \
     --enable-static \

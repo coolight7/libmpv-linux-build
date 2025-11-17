@@ -20,7 +20,6 @@ mkdir -p _build$cpu_suffix
 cd _build$cpu_suffix
 
 CONF=1 ../configure \
-	CFLAGS=-fPIC CXXFLAGS=-fPIC \
 	--host=$cpu_triple \
     --disable-shared \
     --enable-static \
