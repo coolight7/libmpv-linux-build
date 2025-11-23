@@ -49,6 +49,7 @@ LDFLAGS="$LDFLAGS -L$prefix_dir/lib/ $default_ld_cxx_stdlib -lm" meson setup $bu
 	-Dlibmpv=true \
  	-Dcplayer=false \
 	-Dgpl=true \
+    -Dbuild-date=false \
 	\
 	-Dhtml-build=disabled \
 	-Dmanpage-build=disabled \

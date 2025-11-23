@@ -21,6 +21,8 @@ libva-wayland.so.2
 libwayland-client.so.0
 libdrm.so.2
 libXfixes.so.3
+libdrm.so.2
+libXfixes.so.3
 libbsd.so.0
 libpulsecommon-13.99.so
 libdbus-1.so.3

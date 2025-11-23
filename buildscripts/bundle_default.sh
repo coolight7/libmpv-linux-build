@@ -24,8 +24,8 @@ cp flavors/default.sh scripts/ffmpeg.sh
 
 # coolight --- temp
 # ./build.sh 
-./build.sh --prebuild-rm-mediaxx
-# ./build.sh --prebuild-rm-ff-mpv
+# ./build.sh --prebuild-rm-mediaxx
+./build.sh --prebuild-rm-ff-mpv
 
 if [ $? -ne 0 ]; then
   exit -1
@@ -71,6 +71,14 @@ copyLib() {
   cp prefix/$1/lib/libavdevice.so              $build_home_dir/output/$1/
 
   #  for lib in $(ldd libmediaxx.so | grep -oP '(?<==>\s)\S+'); do echo "$lib"; done
+  # 通过在 新装的 ubuntu20 系统上 ldd libmediaxx.so 得到缺失这些库：
+  cp /lib/x86_64-linux-gnu/libva.so.2           $build_home_dir/output/$1/
+  cp /lib/x86_64-linux-gnu/libva-drm.so.2       $build_home_dir/output/$1/
+  cp /lib/x86_64-linux-gnu/libva-x11.so.2       $build_home_dir/output/$1/
+  cp /lib/x86_64-linux-gnu/libva-wayland.so.2   $build_home_dir/output/$1/
+  cp /lib/x86_64-linux-gnu/libvdpau.so.1        $build_home_dir/output/$1/
+  cp /lib/x86_64-linux-gnu/libpipewire-0.3.so.0 $build_home_dir/output/$1/
+  cp /lib/x86_64-linux-gnu/libXpresent.so.1     $build_home_dir/output/$1/
 
   cp $build_home_dir/help/*                    $build_home_dir/output/$1/
 	pushd $build_home_dir/output/$1/
