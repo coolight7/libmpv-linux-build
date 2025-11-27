@@ -35,6 +35,9 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 
 # c++std: libjxl、shaderc
 # 由 mediaxx 静态链接标准库并导出符号，libmpv 动态链接使用
+
+# gpl: 链接 x11 ，链接系统库可以不遵循GPL传染性要求
+
 LDFLAGS="$LDFLAGS -L$prefix_dir/lib/ $default_ld_cxx_stdlib -lm" meson setup $build \
 	--cross-file "$prefix_dir/crossfile.txt" \
 	--default-library static \

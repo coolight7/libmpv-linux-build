@@ -59,7 +59,7 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 	--extra-cxxflags="$CXXFLAGS -I$prefix_dir/include -I/usr/include/pipewire-0.3/ -I/usr/include/spa-0.2/ $cpuflags" \
 	--extra-ldflags="$LDFLAGS -L$prefix_dir/lib $default_ld_cxx_stdlib -lstdc++ -lm -lpthread" \
 	\
-	--enable-gpl \
+	--disable-gpl \
 	--enable-nonfree \
 	--enable-version3 \
 	\
@@ -142,7 +142,6 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 	--enable-libsoxr \
 	--enable-libvorbis \
 	--enable-libbs2b \
-	--enable-librubberband \
 	--enable-libvpx \
 	--enable-libwebp \
 	--enable-libdav1d \
@@ -225,7 +224,6 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 	--enable-filter=pan \
 	--enable-filter=stereowiden \
 	--enable-filter=stereotools \
-	--enable-filter=rubberband \
 	--enable-filter=volume \
 	--enable-filter=volumedetect \
 	--enable-filter=null,nullsink,nullsrc,anull,anullsink,anullsrc \
