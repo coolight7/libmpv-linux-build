@@ -1,3 +1,5 @@
 rm -rf ./output/
 mkdir output
-docker cp ff3335db191e:/home/coolight/program/media/libmpv-linux-build/output/ ./output/
+
+target_home_dir=$(pwd)
+docker cp ff3335db191e:$target_home_dir/output/ ./output/
