@@ -11,5 +11,12 @@
 - 部分库由系统库提供，编译时报错缺少的库直接 apt 安装即可
 
 ## 可能的问题
-- patch应用失败
+- patch 应用失败
     - 可以直接手动按照 patch 修改内容
+- mpv编译失败, 缺少 wayland-protocols 文件，直接从系统文件复制过去
+    - `video/out/meson.build:45:27: ERROR: File /home/coolight/program/media/libmpv-linux-build/buildscripts/prefix/x86_64/usr/local/share/wayland-protocols/stable/presentation-time/presentation-time.xml does not exist.`
+    - 执行:
+```sh
+mkdir -p /home/coolight/program/media/libmpv-linux-build/buildscripts/prefix/x86_64/usr/local/share/wayland-protocols/
+cp -r /usr/local/share/wayland-protocols/ /home/coolight/program/media/libmpv-linux-build/buildscripts/prefix/x86_64/usr/local/share/
+```
