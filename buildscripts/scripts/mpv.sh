@@ -65,8 +65,8 @@ LDFLAGS="$LDFLAGS -L$prefix_dir/lib/ $default_ld_cxx_stdlib -lm" meson setup $bu
 	-Dlibbluray=disabled \
 	-Ddvdnav=disabled \
 	-Dvapoursynth=disabled \
-	-Duchardet=disabled \
 	\
+	-Duchardet=enabled \
 	-Diconv=enabled \
 	-Dlibarchive=enabled \
 	-Drubberband=enabled \
