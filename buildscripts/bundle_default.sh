@@ -82,6 +82,9 @@ copyLib() {
   cp /lib/x86_64-linux-gnu/libpipewire-0.3.so.0 $build_home_dir/output/$1/
   cp /lib/x86_64-linux-gnu/libXpresent.so.1     $build_home_dir/output/$1/
 
+  cp /usr/local/lib64/libstdc++.so.6           $build_home_dir/output/$1/
+  cp /usr/local/lib64/libgcc_s.so.1            $build_home_dir/output/$1/
+
   cp $build_home_dir/help/*                    $build_home_dir/output/$1/
 	pushd $build_home_dir/output/$1/
   ./create_comm_syms.sh
@@ -92,6 +95,9 @@ copyLib arm64-v8a
 copyLib armeabi-v7a
 copyLib x86
 copyLib x86_64
+
+stripLib libstdc++.so.6
+stripLib libgcc_s.so.1
 
 cat $build_home_dir/output/arm64-v8a/comm_cxx_syms.txt \
     $build_home_dir/output/armeabi-v7a/comm_cxx_syms.txt \

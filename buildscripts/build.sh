@@ -50,7 +50,7 @@ loadarch () {
 	export default_cxx_stl=" "
 	export default_ld_cxx_stdlib_unset=" "
 	export default_ld_cxx_stdlib="  "
-	export default_ld_cxx_stdlib_mediaxx=" -static-libstdc++ -static-libgcc "
+	export default_ld_cxx_stdlib_mediaxx=" "
 	export build_home_dir="$PWD/../"
 	export prefix_dir="$PWD/prefix/$prefix_name"
 	export source_dir="$PWD/deps/"
