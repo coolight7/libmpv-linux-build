@@ -4,18 +4,27 @@
 
 v_cmake=3.31.6
 
-v_libass=0.17.4
-v_libunibreak=6.1
-v_harfbuzz=12.2.0
+# 编译 ffmpeg 的 x86 汇编需要的 nasm 最低版本，低于它会在编译汇编文件时报错
+nasm_min=2.15
+nasm_fullver=2.16.03
+
+# 各依赖库版本与 libmpv-android-video-build 保持一致，便于两端共用同一套 ffmpeg/mediaxx 代码
+v_libass=0.17.5
+v_libunibreak=7.0
+v_harfbuzz=14.4.0
 v_fribidi=1.0.16
-v_freetype=2-14-1
-v_mbedtls=3.6.5
+v_freetype=2-14-3
+v_mbedtls=3.6.7
 v_shaderc=2025.3
-v_dav1d=1.5.2
-v_libxml2=2.15.0
-v_libplacebo=7.351.0
-v_ffmpeg=8.0.1
+v_dav1d=1.5.4
+v_libxml2=2.15.4
+v_libplacebo=7.360.1
+# https://ffmpeg.org/download.html
+v_ffmpeg=9.0.1
+# mpv 使用 fork 的 extend 分支，该分支在官方 0.41.0 基础上增加了音频分析相关的接口
+# 下面的版本号仅表示 fork 分支基于的官方版本，实际编译的是 fork 分支
 v_mpv=0.41.0
+v_mpv_branch=extend
 v_libogg=1.3.6
 v_libvpx=1.14
 

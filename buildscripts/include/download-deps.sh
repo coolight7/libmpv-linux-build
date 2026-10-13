@@ -74,7 +74,7 @@ HEREDOC
 [ ! -d libbs2b ] && git clone --depth 1 https://github.com/alexmarsev/libbs2b.git libbs2b
 
 # opus-dnn
-[ ! -d "$prefix_dir/opus_dnn" ] && $WGET https://media.xiph.org/opus/models/opus_data-8a07d57c4fce6fb30f23b3e0d264004e04f1d7b421f5392ef61543d021a439af.tar.gz && tar -zxvf opus_data-8a07d57c4fce6fb30f23b3e0d264004e04f1d7b421f5392ef61543d021a439af.tar.gz && mv dnn opus_dnn && rm opus_data-8a07d57c4fce6fb30f23b3e0d264004e04f1d7b421f5392ef61543d021a439af.tar.gz
+[ ! -d opus_dnn ] && $WGET https://media.xiph.org/opus/models/opus_data-8a07d57c4fce6fb30f23b3e0d264004e04f1d7b421f5392ef61543d021a439af.tar.gz && tar -zxvf opus_data-8a07d57c4fce6fb30f23b3e0d264004e04f1d7b421f5392ef61543d021a439af.tar.gz && mv dnn opus_dnn && rm opus_data-8a07d57c4fce6fb30f23b3e0d264004e04f1d7b421f5392ef61543d021a439af.tar.gz
 
 # opus
 [ ! -d opus ] && git clone --depth 1 https://github.com/xiph/opus.git opus
@@ -101,7 +101,8 @@ HEREDOC
 [ ! -d bzip2 ] && git clone --depth 1 https://gitlab.com/bzip2/bzip2.git bzip2
 
 # lzo
-[ ! -d lzo ] && $WGET https://fossies.org/linux/misc/lzo-2.10.tar.gz && tar -zxvf lzo-2.10.tar.gz && mv lzo-2.10 lzo && rm lzo-2.10.tar.gz
+# 从 oberhumer 官网下载，fossies 对自动化下载不友好
+[ ! -d lzo ] && $WGET https://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz && tar -zxvf lzo-2.10.tar.gz && mv lzo-2.10 lzo && rm lzo-2.10.tar.gz
 
 # uchardet
 [ ! -d uchardet ] && git clone --depth 1 https://gitlab.freedesktop.org/uchardet/uchardet.git uchardet
@@ -150,7 +151,19 @@ cd libjxl && rm -rf ./third_party/libjpeg-turbo && ln -s ../libjpeg ./third_part
 [ ! -d brotli ] && git clone --depth 1 https://github.com/google/brotli.git brotli
 
 # mpv
-[ ! -d mpv ] && git clone --depth 1 --branch v$v_mpv https://github.com/mpv-player/mpv.git mpv
+# 使用 fork 仓库的 extend 分支，编译出的 libmpv 供 mediaxx 使用
+if [ ! -d mpv ]; then
+	git clone --depth 1 --branch $v_mpv_branch https://github.com/coolight7/mpv mpv
+else
+	# 之前下载的是官方仓库时，把 remote 切到 fork 仓库并更新到 extend 分支
+	cd mpv
+	git remote set-url origin https://github.com/coolight7/mpv
+	if [ "$(git rev-parse --abbrev-ref HEAD)" != "$v_mpv_branch" ]; then
+		git fetch --depth 1 origin $v_mpv_branch
+		git checkout -B $v_mpv_branch FETCH_HEAD
+	fi
+	cd ..
+fi
 
 # mediaxx
 [ ! -d mediaxx ] && git clone --depth 1 https://github.com/coolight7/mediaxx mediaxx

@@ -31,7 +31,19 @@ mpv_EXPORT_IDS=$build_home_dir/buildscripts/mpv-export.lds
 export PKG_CONFIG_SYSROOT_DIR="$prefix_dir"
 export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/lib/x86_64-linux-gnu/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
 
-[ -f /home/coolight/program/media/libmpv-linux-build/buildscripts/prefix/x86_64/usr/local/share/wayland-protocols ] && ln -s /usr/local/share/wayland-protocols /home/coolight/program/media/libmpv-linux-build/buildscripts/prefix/x86_64/usr/local/share/wayland-protocols
+# wayland-protocols 的协议文件由系统包提供，pkg-config 只给出 pkgdatadir 路径。
+# 这里 PKG_CONFIG_SYSROOT_DIR 会给该路径加上前缀目录，导致 meson 在前缀目录里找不到协议文件，
+# 因此在编译前把系统的协议文件复制一份到前缀目录中。
+if [ ! -e "$prefix_dir/usr/share/wayland-protocols" ]; then
+	for src in /usr/local/share/wayland-protocols /usr/share/wayland-protocols; do
+		if [ -d "$src/stable" ]; then
+			mkdir -p "$prefix_dir/usr/share"
+			cp -r "$src" "$prefix_dir/usr/share/"
+			echo "copied $src to $prefix_dir/usr/share/"
+			break
+		fi
+	done
+fi
 
 # c++std: libjxl、shaderc
 # 由 mediaxx 静态链接标准库并导出符号，libmpv 动态链接使用
@@ -53,6 +65,7 @@ LDFLAGS="$LDFLAGS -L$prefix_dir/lib/ $default_ld_cxx_stdlib -lm" meson setup $bu
  	-Dcplayer=false \
 	-Dgpl=true \
     -Dbuild-date=false \
+	-Dtests=false \
 	\
 	-Dhtml-build=disabled \
 	-Dmanpage-build=disabled \
@@ -64,6 +77,8 @@ LDFLAGS="$LDFLAGS -L$prefix_dir/lib/ $default_ld_cxx_stdlib -lm" meson setup $bu
 	\
 	-Dlibbluray=disabled \
 	-Ddvdnav=disabled \
+	-Ddvbin=disabled \
+	-Dcdda=disabled \
 	-Dvapoursynth=disabled \
 	\
 	-Duchardet=enabled \
@@ -95,4 +110,3 @@ LDFLAGS="$LDFLAGS -L$prefix_dir/lib/ $default_ld_cxx_stdlib -lm" meson setup $bu
 
 "${MY_NINJA_EXE_DIR}/ninja" -C $build -j$cores
 DESTDIR="$prefix_dir" "${MY_NINJA_EXE_DIR}/ninja" -C $build install
-

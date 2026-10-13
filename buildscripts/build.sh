@@ -142,9 +142,13 @@ build () {
 		|| ( $1 == "spirv_cross" && -f "$prefix_dir/lib/libspirv-cross-c.a" ) 
 		|| ( $1 == "openssl" && -f "$prefix_dir/lib/libssl.a" ) 
 		# || ( $1 == "ffmpeg")
-		|| ( $1 == "ffmpeg" && -f "$prefix_dir/lib/libavfilter.a") 
+		# ffmpeg 的静态库在 mediaxx 链接完成后会被移动到 ffmpeg-backup 目录，
+		# 两处都检查，避免重复编译 ffmpeg（mediaxx.sh 会在编译前把库还原回去）
+		|| ( $1 == "ffmpeg" && ( -f "$prefix_dir/lib/libavfilter.a" || -f "$prefix_dir/lib/ffmpeg-backup/libavfilter.a" ) ) 
 		# || ( $1 == "ffmpeg" && -f "$prefix_dir/lib/libavfilter.so")
-		|| ( $1 == "mpv" && -f "$prefix_dir/lib/libmpv.so" ) 
+		# 本项目的 libmpv 由 meson 以静态库方式编译，因此同时判断 .so 和 .a
+		|| ( $1 == "mpv" && ( -f "$prefix_dir/lib/libmpv.so" || -f "$prefix_dir/lib/libmpv.a" ) ) 
+		|| ( $1 == "mediaxx" && -f "$prefix_dir/lib/libmediaxx.so" ) 
 		]]; then
 		return
 	fi

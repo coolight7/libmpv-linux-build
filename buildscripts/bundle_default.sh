@@ -1,8 +1,12 @@
+#!/bin/bash
 # --------------------------------------------------
+# 编译入口脚本：更新 mediaxx 源码 -> 编译依赖与目标库 -> 整理输出目录
+# 注意：脚本里使用了 pushd/popd 等 bash 语法，必须用 bash 执行
 
 export build_home_dir="$PWD/../"
 
 # TODO: coolight --- temp
+# - 第一次编译或需要重新下载依赖时，解注释下面两行并执行 ./download.sh ./patch.sh
 # if [ ! -f "deps" ]; then
 #   rm -rf deps
 # fi
@@ -22,33 +26,36 @@ cp flavors/default.sh scripts/ffmpeg.sh
 
 # --------------------------------------------------
 
-cd deps/mediaxx && git pull && git submodule update --init && cd -
+# 更新 mediaxx 源码；git 拉取失败时继续用本地已有的代码，不要中断编译
+pushd deps/mediaxx >/dev/null
+  git pull || echo "mediaxx: git pull 失败，使用本地已有代码"
+  git submodule update --init || true
+popd >/dev/null
 
 # coolight --- temp
-# ./build.sh 
-# ./build.sh --prebuild-rm-mediaxx
-./build.sh --prebuild-rm-ff-mpv
+# 根据需要选择编译前清理的范围
+# ./build.sh
+# ./build.sh --prebuild-rm-mediaxx              # 只重新编译 mediaxx
+./build.sh --prebuild-rm-ff-mpv                 # 重新编译 ffmpeg/libmpv/mediaxx
 
 if [ $? -ne 0 ]; then
-  exit -1
+  exit 1
 fi
 
+# --------------------------------------------------
+# 本项目只编译 x86_64，且 ffmpeg/libmpv 均为静态库，
+# 最终只输出一个动态库 libmediaxx.so
+arch=x86_64
+
 stripLib() {
-  strip --strip-all prefix/arm64-v8a/lib/$1
-  strip --strip-all prefix/armeabi-v7a/lib/$1
-  strip --strip-all prefix/x86/lib/$1
-  strip --strip-all prefix/x86_64/lib/$1
+  for f in "$@"; do
+    if [ -f "$f" ]; then
+      strip --strip-all "$f"
+    fi
+  done
 }
 
-stripLib libmediaxx.so
-stripLib libmpv.so
-stripLib libavcodec.so
-stripLib libavutil.so
-stripLib libavfilter.so
-stripLib libavformat.so
-stripLib libavdevice.so
-stripLib libswresample.so
-stripLib libswscale.so
+stripLib prefix/$arch/lib/libmediaxx.so
 
 # --------------------------------------------------
 
@@ -56,68 +63,55 @@ rm -rf $build_home_dir/output/
 mkdir -p $build_home_dir/output/
 
 copyLib() {
-  if [[ $1 != "arm64-v8a" && $1 != "armeabi-v7a" && $1 != "x86" && $1 != "x86_64" ]]; then
+  if [[ $1 != "x86_64" && $1 != "x86" && $1 != "arm64-v8a" && $1 != "armeabi-v7a" ]]; then
     echo "call copyLib 参数 {cpu} 不正确: $1"
-    exit -1
+    exit 1
   fi
 
   mkdir -p $build_home_dir/output/$1/
   cp prefix/$1/lib/libmediaxx.so               $build_home_dir/output/$1/
-  cp prefix/$1/lib/libmpv.so                   $build_home_dir/output/$1/
-  cp prefix/$1/lib/libswresample.so            $build_home_dir/output/$1/
-  cp prefix/$1/lib/libswscale.so               $build_home_dir/output/$1/
-  cp prefix/$1/lib/libavutil.so                $build_home_dir/output/$1/
-  cp prefix/$1/lib/libavcodec.so               $build_home_dir/output/$1/
-  cp prefix/$1/lib/libavformat.so              $build_home_dir/output/$1/
-  cp prefix/$1/lib/libavfilter.so              $build_home_dir/output/$1/
-  cp prefix/$1/lib/libavdevice.so              $build_home_dir/output/$1/
 
   #  for lib in $(ldd libmediaxx.so | grep -oP '(?<==>\s)\S+'); do echo "$lib"; done
   # 通过在 新装的 ubuntu20 系统上 ldd libmediaxx.so 得到缺失这些库：
-  cp /lib/x86_64-linux-gnu/libva.so.2           $build_home_dir/output/$1/
-  cp /lib/x86_64-linux-gnu/libva-drm.so.2       $build_home_dir/output/$1/
-  cp /lib/x86_64-linux-gnu/libva-x11.so.2       $build_home_dir/output/$1/
-  cp /lib/x86_64-linux-gnu/libva-wayland.so.2   $build_home_dir/output/$1/
-  cp /lib/x86_64-linux-gnu/libvdpau.so.1        $build_home_dir/output/$1/
-  cp /lib/x86_64-linux-gnu/libpipewire-0.3.so.0 $build_home_dir/output/$1/
-  cp /lib/x86_64-linux-gnu/libXpresent.so.1     $build_home_dir/output/$1/
+  # 用 || true 允许某些库在当前系统上不存在，避免中断打包
+  for lib in libva.so.2 libva-drm.so.2 libva-x11.so.2 libva-wayland.so.2 \
+             libvdpau.so.1 libpipewire-0.3.so.0 libXpresent.so.1; do
+    cp /lib/x86_64-linux-gnu/$lib $build_home_dir/output/$1/ 2>/dev/null || true
+  done
 
   cp /usr/local/lib64/libstdc++.so.6           $build_home_dir/output/$1/
   cp /usr/local/lib64/libgcc_s.so.1            $build_home_dir/output/$1/
 
   cp $build_home_dir/help/*                    $build_home_dir/output/$1/
+
+  # 符号对比脚本需要 libmpv 的符号，而本项目的 libmpv 是静态库，
+  # 因此临时复制过来供脚本读取，生成符号表后再删掉，不作为交付文件
+  libmpv_file=
+  for candidate in libmpv.a libmpv.so; do
+    if [ -f "prefix/$1/lib/$candidate" ]; then
+      cp "prefix/$1/lib/$candidate" $build_home_dir/output/$1/
+      libmpv_file=$candidate
+      break
+    fi
+  done
+
 	pushd $build_home_dir/output/$1/
   ./create_comm_syms.sh
+  [ -n "$libmpv_file" ] && rm -f "$libmpv_file"
   popd
 }
 
-copyLib arm64-v8a
-copyLib armeabi-v7a
-copyLib x86
-copyLib x86_64
+copyLib $arch
 
-stripLib libstdc++.so.6
-stripLib libgcc_s.so.1
+stripLib $build_home_dir/output/$arch/libstdc++.so.6 \
+         $build_home_dir/output/$arch/libgcc_s.so.1
 
-cat $build_home_dir/output/arm64-v8a/comm_cxx_syms.txt \
-    $build_home_dir/output/armeabi-v7a/comm_cxx_syms.txt \
-    $build_home_dir/output/x86/comm_cxx_syms.txt \
-    $build_home_dir/output/x86_64/comm_cxx_syms.txt \
-    | sort | uniq > $build_home_dir/output/comm_cxx_syms.txt
-cat $build_home_dir/output/arm64-v8a/comm_syms.txt \
-    $build_home_dir/output/armeabi-v7a/comm_syms.txt \
-    $build_home_dir/output/x86/comm_syms.txt \
-    $build_home_dir/output/x86_64/comm_syms.txt \
+# 本项目使用 libstdc++，没有 libc++ 符号表，因此只汇总 libmpv 相关的符号表
+cat $build_home_dir/output/$arch/comm_syms.txt \
     | sort | uniq > $build_home_dir/output/comm_syms.txt
-cat $build_home_dir/output/arm64-v8a/libmpv_undef_syms.txt \
-    $build_home_dir/output/armeabi-v7a/libmpv_undef_syms.txt \
-    $build_home_dir/output/x86/libmpv_undef_syms.txt \
-    $build_home_dir/output/x86_64/libmpv_undef_syms.txt \
+cat $build_home_dir/output/$arch/libmpv_undef_syms.txt \
     | sort | uniq > $build_home_dir/output/libmpv_undef_syms.txt
-cat $build_home_dir/output/arm64-v8a/libmpv_def_syms.txt \
-    $build_home_dir/output/armeabi-v7a/libmpv_def_syms.txt \
-    $build_home_dir/output/x86/libmpv_def_syms.txt \
-    $build_home_dir/output/x86_64/libmpv_def_syms.txt \
+cat $build_home_dir/output/$arch/libmpv_def_syms.txt \
     | sort | uniq > $build_home_dir/output/libmpv_def_syms.txt
 
 echo "current dir: vvvvvvvvvvvvvvvvvvvv"

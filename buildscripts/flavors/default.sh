@@ -45,10 +45,17 @@ sed -i '/^Libs/ s|-lc++| |' $prefix_dir/lib/pkgconfig/*.pc
 export PKG_CONFIG_SYSROOT_DIR="$prefix_dir"
 export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/lib/x86_64-linux-gnu/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
 
-# c++std: libjxl、shaderc
-# 链接c++标准库时，如果需要静态链接
-# --extra-ldflags="-L$prefix_dir/lib -lm -nostdlib++ -lc++_static -lc++abi"
-# [vulkan] 会增加 5mb 左右的大小
+# 说明：
+# - c++std: libjxl、shaderc
+# - 链接c++标准库时，如果需要静态链接
+#   --extra-ldflags="-L$prefix_dir/lib -lm -nostdlib++ -lc++_static -lc++abi"
+# - [vulkan] 会增加 5mb 左右的大小
+# - ffmpeg 9.0 不再有 hls 协议（只保留 hls 解复用器）、afx 解复用器和 libshaderc，相关选项已去掉
+# - ffmpeg 9.0 给部分解码器加了 lgpl_gpl 依赖（如 sonic、gremlin_dpcm），这些解码器只在 --enable-gpl 时才会编进来，
+#   本项目是 LGPL 构建（--disable-gpl），因此列表里写了也不会启用
+# - 桌面端与 android 保持一致：启用 --enable-small 缩减体积，不使用 --enable-hardcoded-tables
+#   显式给出 --optflags=-O3，避免 --enable-small 把优化级别改成 -Os
+# - 解码器使用白名单方式：通配符带出的 v4l2m2m、qsv 等硬件解码器会随 --disable-v4l2-m2m 一类开关自动关闭
 ../configure \
 	--target-os=linux --arch="x86_64" --cpu="x86-64" \
 	--nm="$NM" --strip=strip --ranlib="$RANLIB" --ar="$AR" --cc="$CC" --cxx="$CXX" \
@@ -60,7 +67,7 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 	--extra-ldflags="$LDFLAGS -L$prefix_dir/lib $default_ld_cxx_stdlib -lstdc++ -lm -lpthread" \
 	\
 	--disable-gpl \
-	--enable-nonfree \
+	--disable-nonfree \
 	--enable-version3 \
 	\
     --disable-debug \
@@ -70,8 +77,9 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 	--enable-runtime-cpudetect \
 	--enable-pic \
 	--enable-lto=full \
-	--enable-hardcoded-tables \
+	--enable-small \
 	--enable-optimizations \
+	--optflags="-O3" \
 	${asmflags} \
 	--enable-pthreads \
 	\
@@ -120,6 +128,7 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 	--disable-libzvbi \
 	--disable-libaribcaption \
 	--disable-libxvid \
+	--disable-amf \
 	--disable-libmp3lame \
 	--disable-libssh \
 	--disable-libvpl \
@@ -128,7 +137,6 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 	--disable-libsvtav1 \
 	--disable-libmysofa \
 	--disable-libplacebo \
-	--disable-libshaderc \
 	--disable-libdavs2 \
 	--disable-libuavs3d \
 	--disable-libfontconfig \
@@ -177,7 +185,7 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 	--enable-indev=lavfi \
 	\
 	--disable-bsfs \
-	--enable-bsf=aac_adtstoasc,chomp,dca_core,dovi_rpu,dts2pts,dump_extradata,dv_error_marker,eac3_core,evc_frame_merge,extract_extradata,filter_units,h264_mp4toannexb,h264_redundant_pps,hapqa_extract,hevc_mp4toannexb,imx_dump_header,mjpeg2jpeg,mjpega_dump_header,mpeg4_unpack_bframes,null,pcm_rechunk,remove_extradata,setts,showinfo,truehd_core \
+	--enable-bsf=aac_adtstoasc,chomp,dca_core,dovi_rpu,dovi_split,dts2pts,dump_extradata,dv_error_marker,eac3_core,evc_frame_merge,extract_extradata,filter_units,h264_mp4toannexb,h264_redundant_pps,hapqa_extract,hevc_mp4toannexb,imx_dump_header,mjpeg2jpeg,mjpega_dump_header,mpeg4_unpack_bframes,null,pcm_rechunk,remove_extradata,setts,showinfo,truehd_core \
 	\
     --enable-parsers \
     --disable-parser=cook,dvdsub,dvbsub,dvd_nav,g723_1,xma,sipr,bmp,adx \
@@ -186,16 +194,13 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
     --enable-encoder=mjpeg,mjpeg_*,anull,vnull \
 	\
 	--disable-decoders \
-	--enable-decoder=aac*,ac3*,acelp_*,alac,als,amrnb,amrwb,amv,ansi,anull,ape,apng,atrac*,av1,av1_*,avrn,avrp,avs,avui,bitpacked,bmv_audio,cavs,cbd2_dpcm,cfhd,clearvideo,cljr,cyuv,dca,dds,derf_dpcm,dfpwm,dirac,dnxhd,dolby_e,dpx,dsd_*,dsicinaudio,dsicinvideo,dss_sp,dst,dvaudio,dvvideo,dxtory,dxv,eac3,eacmv,eamad,eatgq,eatgv,eatqi,eightbps,eightsvx_exp,eightsvx_fib,escape124,escape130,evrc,exr,fastaudio,ffv1,ffvhuff,ffwavesynth,fic,fits,flac,flashsv,flashsv2,flv,fmvc,fraps,frwu,ftr,g2m,g729,gdv,gif,gremlin_dpcm,h261,h263*,h264*,hap,hdr,hevc*,hnm4_video,hq_hqa,hqx,huffyuv,hymt,iac,idf,iff_ilbm,ilbc,imc,imm4,imm5,interplay_acm,interplay_dpcm,interplay_video,jpeg2000,jpegls,jv,kgv1,kmvc,lagarith,lead,libdav1d,libdavs2,libjxl*,libopus,libuavs3d,libvorbis,libvpx*,loco,lscr,m101,mace3,mace6,magicyuv,media100,metasound,misc4,mjpeg*,mlp,mmvideo,mobiclip,motionpixels,mp1*,mp2*,mp3*,mpc*,mpeg*,mpl2,msa1,mscc,msmpeg*,msnsiren,msp2,msrle,mss*,msvideo1,mszh,mts2,mv30,mvc1,mvc2,mvdv,mvha,mwsc,mxpeg,notchlc,nuv,on2avc,opus,osq,paf_audio,paf_video,pam,pbm,pcm_*,pcx,pdv,pfm,pgm,pgmyuv,pgx,phm,photocd,pictor,pixlet,pjs,png,ppm,prores,prores_raw,prosumer,ptx,qcelp,qdraw,qoa,qoi,qpeg,qtrle,r10k,r210,ra_144,ra_288,ralf,rasc,rawvideo,rka,rl2,roq,rpza,rscc,rtv1,rv*,s302m,sanm,sbc,scpr,screenpresso,sdx2_dpcm,sga,sgi,sgirle,sheervideo,simbiosis_imx,siren,smackaud,smc,smvjpeg,snow,sonic,sp5x,speedhq,speex,srgc,sunrast,svq1,svq3,tak,targa,targa_y216,tdsc,text,theora,tiff,truehd,truemotion1,truemotion2,truemotion2rt,tscc,tscc2,tta,twinvq,ulti,utvideo,vb,vble,vbn,vc1*,vmdaudio,vmdvideo,vmix,vnull,vorbis,vp*,vqc,vvc*,wady_dpcm,wavarc,wavpack,wbmp,wcmv,webp,wmalossless,wmapro,wmav*,wmv*,wnv1,wrapped_avframe,xbin,xbm,xface,xl,xpm,xwd,y41p,ylc,yop,yuv4,zero12v,zerocodec \
-	\
-	--disable-decoder=zlib,zmbv,aasc,alias_pix,agm,anm,apv,arbc,argo,bmv_video,brender_pix,cdgraphics,cdtoons,cri,cdxl,cllc,cpia,camstudio,dxa,flic,4xm,gem,hnm4video,interplayvideo,mdec,mimic,psd,rasc.rl2,roqvideo,txd,vmnc,asv1,asv2,aura,aura2 \
-    --disable-decoder=8svx_exp,8svx_fib,hca,hcom,interplayacm,xma1,xma2,cook \
+	--enable-decoder=aac*,ac3*,acelp_*,alac,als,amrnb,amrwb,amv,ansi,anull,ape,apng,atrac*,av1,av1_*,avrn,avrp,avs,avui,bitpacked,bmv_audio,cavs,cbd2_dpcm,cfhd,clearvideo,cljr,cyuv,dca,dds,derf_dpcm,dfpwm,dirac,dnxhd,dolby_e,dpx,dsd_*,dsicinaudio,dsicinvideo,dss_sp,dst,dvaudio,dvvideo,dxtory,dxv,eac3,eacmv,eamad,eatgq,eatgv,eatqi,eightbps,eightsvx_exp,eightsvx_fib,escape124,escape130,evrc,exr,fastaudio,ffv1,ffvhuff,ffwavesynth,fic,fits,flac,flashsv,flashsv2,flv,fmvc,fraps,frwu,ftr,g2m,g729,gdv,gif,h261,h263*,h264*,hap,hdr,hevc*,hnm4_video,hq_hqa,hqx,huffyuv,hymt,iac,idf,iff_ilbm,ilbc,imc,imm4,imm5,interplay_acm,interplay_dpcm,interplay_video,jpeg2000,jpegls,jv,kgv1,kmvc,lagarith,lead,libdav1d,libjxl*,libopus,libvorbis,libvpx*,loco,lscr,m101,mace3,mace6,magicyuv,media100,metasound,misc4,mjpeg*,mlp,mmvideo,mobiclip,motionpixels,mp1*,mp2*,mp3*,mpc*,mpeg*,mpl2,msa1,mscc,msmpeg*,msnsiren,msp2,msrle,mss*,msvideo1,mszh,mts2,mv30,mvc1,mvc2,mvdv,mvha,mwsc,mxpeg,notchlc,nuv,on2avc,opus,osq,paf_audio,paf_video,pam,pbm,pcm_*,pcx,pdv,pfm,pgm,pgmyuv,pgx,phm,photocd,pictor,pixlet,pjs,png,ppm,prores,prores_raw,prosumer,ptx,qcelp,qdraw,qoa,qoi,qpeg,qtrle,r10k,r210,ra_144,ra_288,ralf,rasc,rawvideo,rka,rl2,roq,rpza,rscc,rtv1,rv*,s302m,sanm,sbc,scpr,screenpresso,sdx2_dpcm,sga,sgi,sgirle,sheervideo,simbiosis_imx,siren,smackaud,smc,smvjpeg,snow,sp5x,speedhq,speex,srgc,sunrast,svq1,svq3,tak,targa,targa_y216,tdsc,text,theora,tiff,truehd,truemotion1,truemotion2,truemotion2rt,tscc,tscc2,tta,twinvq,ulti,utvideo,vb,vble,vbn,vc1*,vmdaudio,vmdvideo,vmix,vnull,vorbis,vp*,vqc,vvc*,wady_dpcm,wavarc,wavpack,wbmp,wcmv,webp,webp_anim,wmalossless,wmapro,wmav*,wmv*,wnv1,wrapped_avframe,xbin,xbm,xface,xl,xpm,xwd,y41p,ylc,yop,yuv4,zero12v,zerocodec \
 	\
 	--disable-muxers \
     --enable-muxer=image2*,mjpeg,null \
 	\
 	--disable-demuxers \
-	--enable-demuxer=aa,aac,aax,ac3,ac4,aiff,alp,afx,amr,amrnb,amrwb,apac,ape,apm,apng,apv,argo_asf,argo_brp,argo_cvg,asf,asf_o,ast,au,av1,avi,avr,avs,avs2,avs3,bintext,bit,bitpacked,caf,cavsvideo,cdg,cine,concat,dash,data,daud,derf,dfpwm,dirac,dnxhd,dsf,dsicin,dss,dts,dtshd,dv,eac3,evc,ffmetadata,filmstrip,fits,flac,flic,flv,g722,g726,g726le,g729,gif,h261,h263,h264,hcom,hevc,hls,hnm,iamf,ico,idcin,idf,iff,ifv,ilbc,image2*,image_*,ircam,iss,iv8,ivf,jpegxl_anim,lc3,live_flv,loas,luodat,m4v,matroska,mjpeg,mjpeg_2000,mlp,mlv,mov,mp3,mpc,mpc8,mpegps,mpegts,mpegtsraw,mpegvideo,mpjpeg,mtv,mv,mvi,mxf,mxg,nc,nistsphere,nsp,nsv,nut,obu,ogg,oma,osq,paf,pcm_*,pdv,pjs,pmp,pp_bnk,pva,pvf,qcp,qoa,r3d,rawvideo,rcwt,redspark,rka,rl2,rm,rsd,rso,s337m,sap,sbc,scd,sdp,sdr2,sdx,segafilm,ser,sga,siff,simbiosis_imx,sln,smjpeg,smush,sox,spdif,sup,swf,tak,threedostr,truehd,tta,ty,vc1,vc1t,vividas,vivo,vmd,voc,vqf,vvc,w64,wady,wav,wavarc,webm_dash_manifest,wsd,wsvqa,wtv,wv,wve,xa,xbin,xmd,xmv,xwma,yop,yuv4mpegpipe \
+	--enable-demuxer=aa,aac,aax,ac3,ac4,aiff,alp,amr,amrnb,amrwb,apac,ape,apm,apng,apv,argo_asf,argo_brp,argo_cvg,asf,asf_o,ast,au,av1,avi,avr,avs,avs2,avs3,bintext,bit,bitpacked,caf,cavsvideo,cdg,cine,concat,dash,data,daud,derf,dfpwm,dirac,dnxhd,dsf,dsicin,dss,dts,dtshd,dv,eac3,evc,ffmetadata,filmstrip,fits,flac,flic,flv,g722,g726,g726le,g729,gif,h261,h263,h264,hcom,hevc,hls,hnm,iamf,ico,idcin,idf,iff,ifv,ilbc,image2*,image_*,ircam,iss,iv8,ivf,jpegxl_anim,lc3,live_flv,loas,luodat,m4v,matroska,mjpeg,mjpeg_2000,mlp,mlv,mov,mp3,mpc,mpc8,mpegps,mpegts,mpegtsraw,mpegvideo,mpjpeg,mtv,mv,mvi,mxf,mxg,nc,nistsphere,nsp,nsv,nut,obu,ogg,oma,osq,paf,pcm_*,pdv,pjs,pmp,pp_bnk,pva,pvf,qcp,qoa,r3d,rawvideo,rcwt,redspark,rka,rl2,rm,rsd,rso,s337m,sap,sbc,scd,sdp,sdr2,sdx,segafilm,ser,sga,siff,simbiosis_imx,sln,smjpeg,smush,sox,spdif,sup,swf,tak,threedostr,truehd,tta,ty,vc1,vc1t,vividas,vivo,vmd,voc,vqf,vvc,w64,wady,wav,wavarc,webm_dash_manifest,webp_anim,wsd,wsvqa,wtv,wv,wve,xa,xbin,xmd,xmv,xwma,yop,yuv4mpegpipe \
 	\
     --disable-filters \
 	--enable-filter=format \
@@ -209,9 +214,10 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 	--enable-filter=silencedetect,silenceremove \
 	--enable-filter=acompressor \
 	--enable-filter=alimiter \
-	--enable-filter=atrim \
-	--enable-filter=aecho \
 	--enable-filter=acopy \
+	--enable-filter=aecho \
+	--enable-filter=afade \
+	--enable-filter=atrim \
 	--enable-filter=amovie \
 	--enable-filter=apulsator \
 	--enable-filter=bs2b \
@@ -233,11 +239,10 @@ export PKG_CONFIG_LIBDIR="$prefix_dir/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
 	--enable-filter=aresample \
 	--enable-filter=sinc \
 	--enable-filter=sine \
+    --enable-filter=vibrato,tremolo \
 	\
 	--disable-protocols \
-    --enable-protocol=async,cache,crypto,data,file,hls,pipe,http,https,httpproxy,subfile,tcp,udp,tls
-	
-	# --enable-protocol=android_content
+    --enable-protocol=async,cache,crypto,data,file,pipe,http,https,httpproxy,subfile,tcp,udp,tls
 
 # - 报错找不到依赖包时，也可能是 configure 尝试使用依赖库编译测试程序失败：
 # 	- 其中可能是 cpu平台不正确、符号缺失、缺少 include搜索目录或链接搜索目录、缺少指定链接库名称等原因
