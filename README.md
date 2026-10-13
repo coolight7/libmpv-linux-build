@@ -13,6 +13,22 @@
 - 依赖的系统库（`libva` 等）由 bundle_default.sh 一起复制到输出目录
 - 同时输出符号对照表：`libmpv_def_syms.txt`（libmpv 导出的符号）、`libmpv_undef_syms.txt`（libmpv 需要外部提供的符号）、`comm_syms.txt`（libmpv 实际用到、由 libmediaxx 提供的符号）
 
+## 系统库副本与系统版本的选择
+- 输出目录里除了 `libmediaxx.so`，还有 `libva.so.2`、`libva-drm.so.2`、`libva-x11.so.2`、`libva-wayland.so.2`、`libvdpau.so.1`、`libpipewire-0.3.so.0`、`libXpresent.so.1`、`libstdc++.so.6`、`libgcc_s.so.1` 的副本，`libmediaxx.so` 通过 `DT_RUNPATH=$ORIGIN` 找到它们，目标是：用户系统没装这些库时也能加载
+- 这样做的代价是副本排在系统同名库前面（RUNPATH 优先于系统库目录），会挡住用户系统里更新的库，而副本里的信息是打包机器上的：
+  - `libpipewire-0.3.so.0` 里的模块目录、SPA 插件目录是 `/usr/lib/x86_64-linux-gnu/pipewire-0.3`、`/usr/lib/x86_64-linux-gnu/spa-0.2`
+  - `libva.so.2` 里的驱动目录是 `/usr/lib/x86_64-linux-gnu/dri`
+  - 在 Fedora/openSUSE/Arch 等目录布局不同的发行版上，用这些副本会导致 pipewire 音频输出、VA-API 初始化失败
+- 因此应用侧在加载 `libmediaxx.so` 之前先加载系统里的同名库（mediaxx 的 dart 代码见 `lib/ffi/system_library_preload.dart`）：
+  - 系统库存在，并且提供了 `libmediaxx.so` 需要的全部符号 -> 使用系统版本，副本不再生效
+  - 系统没装该库，或者系统库缺少符号（版本太旧）-> 使用副本，也就是原来的行为
+  - `libXpresent.so.1` 没有模块/驱动目录耦合，不参与这个过程，始终用副本
+- 其它语言/项目直接使用 `libmediaxx.so` 时需要自己做同样的预加载（按绝对路径先 `dlopen` 系统库），否则会一直使用副本
+- 符号列表与检查：
+  - `help/create_preload_syms.sh`：在 `output/<arch>` 目录下执行，打印各库的符号列表（`libmediaxx.so` 的未定义符号与各库导出符号的交集），用于更新 mediaxx 里的 `_requiredSymbols`
+  - `help/check_preload_syms.sh`：比对本次编译的 `libmediaxx.so` 和 mediaxx 里的列表，`bundle_default.sh` 每次都会调用，不一致时打印提示（不影响编译结果）
+  - 依赖升级（`libpipewire`、`libva` 版本变化）后用到了新符号时，需要重新生成并更新 mediaxx 里的列表，否则可能会预加载缺少新符号的系统库
+
 ## 依赖库版本
 - 统一写在 [buildscripts/include/depinfo.sh](buildscripts/include/depinfo.sh)，与 [libmpv-android-video-build](https://github.com/coolight7/libmpv-android-video-build) 保持一致
 - `ffmpeg` 使用官方 tag `n9.0.1`

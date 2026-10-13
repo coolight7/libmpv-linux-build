@@ -98,6 +98,11 @@ copyLib() {
 	pushd $build_home_dir/output/$1/
   ./create_comm_syms.sh
   [ -n "$libmpv_file" ] && rm -f "$libmpv_file"
+
+  # 检查 mediaxx 的 Dart 侧预加载符号列表（lib/ffi/system_library_preload.dart）是否过期：
+  # 依赖升级后 libmediaxx.so 用到新符号时列表需要重新生成，这里只提示，不影响编译结果
+  sh ./check_preload_syms.sh \
+    "$build_home_dir/buildscripts/deps/mediaxx/lib/ffi/system_library_preload.dart"
   popd
 }
 
