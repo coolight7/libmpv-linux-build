@@ -26,11 +26,8 @@ cp flavors/default.sh scripts/ffmpeg.sh
 
 # --------------------------------------------------
 
-# 更新 mediaxx 源码；git 拉取失败时继续用本地已有的代码，不要中断编译
-pushd deps/mediaxx >/dev/null
-  git pull || echo "mediaxx: git pull 失败，使用本地已有代码"
-  git submodule update --init || true
-popd >/dev/null
+cd deps/mpv && git switch extend && git pull && git submodule update --init && cd -
+cd deps/mediaxx && git pull && git submodule update --init && cd -
 
 # coolight --- temp
 # 根据需要选择编译前清理的范围
